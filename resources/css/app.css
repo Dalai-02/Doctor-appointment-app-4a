@@ -1,8 +1,13 @@
+<<<<<<< HEAD
 
 @import "flowbite/src/themes/default";
 
 @plugin "flowbite/plugin";
 
+=======
+@import "flowbite/src/themes/default";
+@plugin "flowbite/plugin";
+>>>>>>> 249b43ae89a259d1552be25f196090e08bacb3b8
 @source "../../node_modules/flowbite";
 
 @tailwind base;
@@ -12,4 +17,7 @@
 [x-cloak] {
     display: none;
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 249b43ae89a259d1552be25f196090e08bacb3b8

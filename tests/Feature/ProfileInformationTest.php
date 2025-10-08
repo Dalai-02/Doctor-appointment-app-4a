@@ -1,5 +1,6 @@
 <?php
 
+<<<<<<< HEAD
 namespace Tests\Feature;
 
 use App\Models\User;
@@ -34,3 +35,29 @@ class ProfileInformationTest extends TestCase
         $this->assertEquals('test@example.com', $user->fresh()->email);
     }
 }
+=======
+use App\Models\User;
+use Laravel\Jetstream\Http\Livewire\UpdateProfileInformationForm;
+use Livewire\Livewire;
+
+test('current profile information is available', function () {
+    $this->actingAs($user = User::factory()->create());
+
+    $component = Livewire::test(UpdateProfileInformationForm::class);
+
+    expect($component->state['name'])->toEqual($user->name);
+    expect($component->state['email'])->toEqual($user->email);
+});
+
+test('profile information can be updated', function () {
+    $this->actingAs($user = User::factory()->create());
+
+    Livewire::test(UpdateProfileInformationForm::class)
+        ->set('state', ['name' => 'Test Name', 'email' => 'test@example.com'])
+        ->call('updateProfileInformation');
+
+    expect($user->fresh())
+        ->name->toEqual('Test Name')
+        ->email->toEqual('test@example.com');
+});
+>>>>>>> 249b43ae89a259d1552be25f196090e08bacb3b8
