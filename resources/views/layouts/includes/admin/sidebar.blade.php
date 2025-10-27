@@ -1,38 +1,22 @@
 @php
-    //arreglo de iconos
+//arreglo de iconos
 $links = [
     [
         'name' => 'Dashboard',
         'icon' => 'fa-solid fa-gauge',
         'href' => route('admin.dashboard'),
         'active' => request()->routeIs('admin.dashboard'),
-],
-[
-  'header' => 'Hospital',
-],
-[
-        'name' => 'Dashboard',
-        'icon' => 'fa-solid fa-gauge',
-        'href' => route('admin.dashboard'),
-        'active' => false,
-        'submenu' => [
-            [
-                'name' => 'Ian master',
-                'href'=> '#',
-                'active' => false,
-            ],
-            [
-                'name' => 'Billing',
-                'href'=> '#',
-                'active' => false,
-            ],
-            [
-                'name' => 'Invoice',
-                'href'=> '#',
-                'active' => false,
-            ],
     ],
-]
+    [
+        'header' => 'Gestión',
+    ],
+    [
+        'name' => 'Roles y permisos',
+        'icon' => 'fa-solid fa-shield-halved',
+        'href' => route('admin.roles.index'),
+        'active' => request()->routeIs('admin.roles.*'),
+    ],
+    
 ];
 
 @endphp
