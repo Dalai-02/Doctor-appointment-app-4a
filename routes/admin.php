@@ -6,5 +6,5 @@ Route::get('/', function () {
    return view('admin.dashboard');
 })->name('dashboard');
 
-//Gestión de roles
-Route::resource('roles', RoleController::class);
+//Gestion de ROles
+Route::resource('roles', \App\Http\Controllers\Admin\RoleController::class);
