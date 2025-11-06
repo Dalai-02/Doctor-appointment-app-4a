@@ -2,6 +2,21 @@
 
 return [
 
+    /*
+    |--------------------------------------------------------------------------
+    | Default Guard
+    |--------------------------------------------------------------------------
+    |
+    | Este valor define el guard por defecto para roles y permisos.
+    | Si no se especifica guard_name al crear un rol o permiso,
+    | se usará este automáticamente.
+    |
+    */
+
+    'defaults' => [
+        'guard' => 'web',
+    ],
+
     'models' => [
 
         /*
