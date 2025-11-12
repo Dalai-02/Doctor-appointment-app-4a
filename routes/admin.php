@@ -8,3 +8,9 @@ Route::get('/', function () {
 
 //Gestion de ROles
 Route::resource('roles', \App\Http\Controllers\Admin\RoleController::class);
+
+//Gestión de usuarios
+Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
+
+
+
