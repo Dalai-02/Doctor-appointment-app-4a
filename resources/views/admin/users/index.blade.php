@@ -16,8 +16,6 @@
         </x-wire-button>
     </x-slot>
 
-    <div class="p-6 bg-white rounded-lg shadow">
-        <p class="text-gray-600 text-center">Zona de usuarios (vacía por ahora)</p>
-    </div>
-
+        @livewire('admin.datatables.users-table')
+        
 </x-admin-layout>

@@ -14,14 +14,9 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Llamar al role seeder creado
-        $this->call(
-            RoleSeeder::class);
-
-            //Crea un usuario de prueba
-        User::factory()->create([
-            'name' => 'Dalai Pacheco',
-            'email' => 'dalai@gmail.com',
-            'password' => bcrypt('12345678'),
+        $this->call([
+            RoleSeeder::class,
+            UserSeeder::class
         ]);
     }
 }

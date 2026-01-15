@@ -21,9 +21,11 @@ class RoleSeeder extends Seeder
         ];
 
         //Crear roles
-        foreach ($roles as $role) {
-            Role::create(['name' => $role
-            ]);
+            foreach ($roles as $role) {
+        Role::firstOrCreate([
+            'name' => $role,
+            'guard_name' => 'web'
+    ]);
         }
     }
 }
