@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Role;
 use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
@@ -113,8 +114,31 @@ class UserController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(User $user)
     {
-        //
+        //No permitir que el usuario se elimine a sí mismo
+        if (auth()->id() === $user->id) {
+            session()->flash('swal', [
+                'icon' => 'error',
+                'title' => 'Error',
+                'text' => 'No puedes eliminar tu propio usuario.',
+            ]);
+            abort(403, 'No puedes eliminar tu propio usuario.');
+        }
+
+        //Eliminar roles asociados a un usuario
+        $user->roles()->detach();
+
+        //Eliminar usuario
+        $user->delete();
+
+        session()->flash('swal', [
+            'icon' => 'success',
+            'title' => 'Usuario eliminado',
+            'text' => 'El usuario ha sido eliminado exitosamente.',
+        ]);
+        return redirect()->route('admin.users.index')->with('success', 'Usuario eliminado exitosamente.');
+
+
     }
 }
