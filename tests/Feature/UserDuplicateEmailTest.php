@@ -13,7 +13,7 @@ test('a user cannot be created with a duplicate email', function () {
        'email' => 'test@email.com'
    ]);
 
-   //2) Crear un rol válido (porque tu backend lo exige)
+   //2) Crear un rol válido 
    $role = Role::create(['name' => 'Admin']);
 
    //3) Simular que ese usuario ha iniciado sesión
@@ -31,7 +31,7 @@ test('a user cannot be created with a duplicate email', function () {
        'role_id' => $role->id,
    ]);
 
-   //5) Esperar error de validación tipo API
+   //5) Esperar error de validación 
    $response->assertStatus(422);
 
    //6) Verificar que NO se creó otro usuario
