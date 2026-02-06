@@ -58,6 +58,15 @@ class UserController extends Controller
             'title' => 'Usuario creado',
             'text' => 'El usuario ha sido creado exitosamente.',
         ]);
+
+        //Si el usuario creado es un paciente, crear su registro en la tabla patients
+        if($user::role('Paciente')){
+            //Creamos el registro para un paciente
+            $patient = $user->patient()->create([]);
+            return redirect()->route('admin.patients.edit', $patient);
+        }
+
+
         return redirect()->route('admin.users.index')->with('success', 'Usuario creado exitosamente.');
     }
 
