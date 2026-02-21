@@ -62,6 +62,18 @@
 </script>
 @endif
 
+{{-- Mostrar Sweet Alert para errores de validación --}}
+@if ($errors->any())
+<script>
+    Swal.fire({
+        icon: 'error',
+        title: 'Error de validación',
+        text: 'No se ha llenado de manera correcta los campos',
+        confirmButtonColor: '#3085d6'
+    });
+</script>
+@endif
+
 <script>
     // Buscar todos los formularios con clase .delete-form
     const forms = document.querySelectorAll('.delete-form');

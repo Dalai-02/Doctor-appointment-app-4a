@@ -51,7 +51,8 @@ class UserController extends Controller
 
         $user = User::create($data);
 
-        $user->roles()->attach($data['role_id']);
+        $role = Role::findOrFail($data['role_id']);
+        $user->roles()->attach($role->id);
 
         session()->flash('swal', [
             'icon' => 'success',
@@ -59,13 +60,21 @@ class UserController extends Controller
             'text' => 'El usuario ha sido creado exitosamente.',
         ]);
 
-        //Si el usuario creado es un paciente, crear su registro en la tabla patients
-        if($user::role('Paciente')){
-            //Creamos el registro para un paciente
-            $patient = $user->patient()->create([]);
-            return redirect()->route('admin.patients.edit', $patient);
+        $roleName = $role->name;
+        $patientRoleNames = ['Paciente'];
+        $doctorRoleNames = ['Doctor', 'Médico', 'Medico'];
+
+        //Si el usuario creado es doctor, crear su registro y enviar a editar
+        if (in_array($roleName, $doctorRoleNames, true)) {
+            $doctor = $user->doctor()->firstOrCreate([]);
+            return redirect()->route('admin.doctors.edit', $doctor);
         }
 
+        //Si el usuario creado es paciente, crear su registro y enviar a editar
+        if (in_array($roleName, $patientRoleNames, true)) {
+            $patient = $user->patient()->firstOrCreate([]);
+            return redirect()->route('admin.patients.edit', $patient);
+        }
 
         return redirect()->route('admin.users.index')->with('success', 'Usuario creado exitosamente.');
     }

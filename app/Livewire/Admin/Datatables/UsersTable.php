@@ -27,7 +27,7 @@ class UsersTable extends DataTableComponent
             Column::make("Teléfono", "phone")
                 ->sortable(),
             Column::make("Rol", "id")
-                ->format(fn($value, $row) => $row->roles->pluck('name')->join(', ')),
+                ->format(fn($value, $row) => $row->roles->pluck('name')->join(', ') ?: 'N/A'),
             Column::make("Created at", "created_at")
                 ->sortable(),
             Column::make("Updated at", "updated_at")

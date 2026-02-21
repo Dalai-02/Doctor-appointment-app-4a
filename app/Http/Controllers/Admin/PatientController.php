@@ -80,7 +80,21 @@ class PatientController extends Controller
      */
     public function destroy(Patient $patient)
     {
+        // Obtener el usuario asociado
+        $user = $patient->user;
+        
+        // Eliminar el paciente
         $patient->delete();
-        return redirect()->route('admin.patients.index')->with('success', 'Paciente eliminado exitosamente.');
+        
+        // Quitar todos los roles del usuario
+        $user->roles()->detach();
+        
+        session()->flash('swal', [
+            'icon' => 'success',
+            'title' => 'Paciente eliminado',
+            'text' => 'El paciente ha sido eliminado correctamente.',
+        ]);
+        
+        return redirect()->route('admin.patients.index');
     }
 }

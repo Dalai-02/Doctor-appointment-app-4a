@@ -249,7 +249,7 @@
                         </div>
                         <div>
                             <x-wire-phone label="Telefono de contacto" name="emergency_contact_phone" 
-                                mask="(xxx) xxx-xxxx" placeholder="(999) 999-9999"
+                                placeholder="(999) 999-9999"
                                 value="{{ old('emergency_contact_phone', $patient->emergency_contact_phone) }}" />
                         </div>
                         <div>

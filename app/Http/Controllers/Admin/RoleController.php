@@ -32,10 +32,15 @@ class RoleController extends Controller
     public function store(Request $request)
     {
         //Validar que se cree correctamente
-        $request->validate(['name'=> 'required|unique:roles,name']);
+        $request->validate([
+            'name' => 'required|unique:roles,name,NULL,id,guard_name,web',
+        ]);
 
         //Si pasa la validación, crear el rol
-        Role::create(['name' => $request->name]);
+        Role::create([
+            'name' => $request->name,
+            'guard_name' => 'web',
+        ]);
 
         //Variable de un sólo uso para alerta
         session()->flash('swal',
@@ -83,7 +88,9 @@ class RoleController extends Controller
     public function update(Request $request, Role $role)
     {
         //Validar que se se inserte bien
-        $request->validate(['name'=> 'required|unique:roles,name,' . $role->id]);
+        $request->validate([
+            'name' => 'required|unique:roles,name,' . $role->id . ',id,guard_name,web',
+        ]);
 
         //Si el campo no cambio no se tomará en cuenta la validación
         if($role->name === $request->name){
