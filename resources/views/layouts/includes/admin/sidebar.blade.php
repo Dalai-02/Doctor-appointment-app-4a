@@ -34,8 +34,18 @@ $links = [
         'href' => route('admin.doctors.index'),
         'active' => request()->routeIs('admin.doctors.*'),
     ],
-
-    
+    [
+        'name' => 'Aseguradoras',
+        'icon' => 'fa-solid fa-briefcase-medical',
+        'href' => route('admin.insurances.index'),
+        'active' => request()->routeIs('admin.insurances.*'),
+    ],
+    [
+        'name' => 'Sugerencias',
+        'icon' => 'fa-solid fa-envelope-open-text',
+        'href' => route('admin.feedbacks.index'),
+        'active' => request()->routeIs('admin.feedbacks.*'),
+    ],
 ];
 
 @endphp
