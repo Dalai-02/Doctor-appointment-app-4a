@@ -13,8 +13,7 @@ class FeedbackController extends Controller
      */
     public function index()
     {
-        $feedbacks = Feedback::latest()->get();
-        return view('admin.feedbacks.index', compact('feedbacks'));
+        return view('admin.feedbacks.index');
     }
 
     /**

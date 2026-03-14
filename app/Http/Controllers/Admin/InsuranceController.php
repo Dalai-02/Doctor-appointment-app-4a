@@ -13,8 +13,7 @@ class InsuranceController extends Controller
      */
     public function index()
     {
-        $insurances = Insurance::latest()->get();
-        return view('admin.insurances.index', compact('insurances'));
+        return view('admin.insurances.index');
     }
 
     /**
