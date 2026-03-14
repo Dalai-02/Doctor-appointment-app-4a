@@ -11,7 +11,7 @@ $links = [
         'header' => 'Gestión',
     ],
     [
-        'name' => 'Roles y permisos',
+        'name' => 'Roles y Permisos',
         'icon' => 'fa-solid fa-shield-halved',
         'href' => route('admin.roles.index'),
         'active' => request()->routeIs('admin.roles.*'),
@@ -33,6 +33,24 @@ $links = [
         'icon' => 'fa-solid fa-user-doctor',
         'href' => route('admin.doctors.index'),
         'active' => request()->routeIs('admin.doctors.*'),
+    ],
+    [
+        'name' => 'Citas médicas',
+        'icon' => 'fa-solid fa-calendar-check',
+        'href' => route('admin.appointments.index'),
+        'active' => request()->routeIs('admin.appointments.*'),
+    ],
+    [
+        'name' => 'Calendario',
+        'icon' => 'fa-solid fa-calendar-days',
+        'href' => route('admin.calendars.index'),
+        'active' => request()->routeIs('admin.calendars.*'),
+    ],
+    [
+        'name' => 'Soporte',
+        'icon' => 'fa-solid fa-headset',
+        'href' => route('admin.support.index'),
+        'active' => request()->routeIs('admin.support.*'),
     ],
 
     

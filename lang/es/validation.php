@@ -291,5 +291,7 @@ return [
         'emergency_contact_phone'  => 'teléfono del contacto de emergencia',
         'emergency_contact_relationship' => 'relación del contacto de emergencia',
         'blood_type_id'            => 'tipo de sangre',
+        'status'                   => 'estado',
+        
     ],
 ];
