@@ -50,9 +50,11 @@ class DoctorScheduleController extends Controller
             ->get()
             ->filter(function (Appointment $appointment) use ($selectedSlotsByDay) {
                 $dayOfWeek = Carbon::parse($appointment->date)->dayOfWeekIso;
-                $slotValue = substr($appointment->start_time, 0, 5) . '-' . substr($appointment->end_time, 0, 5);
 
-                return !in_array($slotValue, $selectedSlotsByDay[$dayOfWeek] ?? [], true);
+                return !$this->appointmentIsCoveredBySlots(
+                    $appointment,
+                    $selectedSlotsByDay[$dayOfWeek] ?? []
+                );
             })
             ->values();
 
@@ -121,5 +123,89 @@ class DoctorScheduleController extends Controller
         }
 
         return $slots;
+    }
+
+    private function appointmentIsCoveredBySlots(Appointment $appointment, array $slots): bool
+    {
+        if (empty($slots)) {
+            return false;
+        }
+
+        $appointmentStart = $this->timeToMinutes($appointment->start_time);
+        $appointmentEnd = $this->timeToMinutes($appointment->end_time);
+
+        if ($appointmentStart === null || $appointmentEnd === null || $appointmentEnd <= $appointmentStart) {
+            return false;
+        }
+
+        $ranges = collect($slots)
+            ->map(function ($slot) {
+                if (!is_string($slot) || !str_contains($slot, '-')) {
+                    return null;
+                }
+
+                [$slotStart, $slotEnd] = explode('-', $slot);
+
+                $start = $this->timeToMinutes($slotStart);
+                $end = $this->timeToMinutes($slotEnd);
+
+                if ($start === null || $end === null || $end <= $start) {
+                    return null;
+                }
+
+                return [$start, $end];
+            })
+            ->filter()
+            ->sortBy(fn (array $range) => $range[0])
+            ->values();
+
+        if ($ranges->isEmpty()) {
+            return false;
+        }
+
+        $mergedRanges = [];
+
+        foreach ($ranges as [$start, $end]) {
+            if (empty($mergedRanges)) {
+                $mergedRanges[] = [$start, $end];
+                continue;
+            }
+
+            $lastIndex = array_key_last($mergedRanges);
+            [$lastStart, $lastEnd] = $mergedRanges[$lastIndex];
+
+            if ($start <= $lastEnd) {
+                $mergedRanges[$lastIndex] = [$lastStart, max($lastEnd, $end)];
+                continue;
+            }
+
+            $mergedRanges[] = [$start, $end];
+        }
+
+        foreach ($mergedRanges as [$rangeStart, $rangeEnd]) {
+            if ($appointmentStart >= $rangeStart && $appointmentEnd <= $rangeEnd) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function timeToMinutes(?string $time): ?int
+    {
+        if (!$time) {
+            return null;
+        }
+
+        $parts = explode(':', $time);
+
+        if (count($parts) < 2) {
+            return null;
+        }
+
+        $hours = (int) $parts[0];
+        $minutes = (int) $parts[1];
+
+        return ($hours * 60) + $minutes;
     }
 }

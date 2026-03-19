@@ -58,6 +58,13 @@ class DoctorController extends Controller
         return redirect()->route('admin.doctors.index');
     }
 
+    public function show(Doctor $doctor)
+    {
+        $doctor->load('user', 'speciality');
+
+        return view('admin.doctors.show', compact('doctor'));
+    }
+
     public function edit(Doctor $doctor)
     {
         $specialities = Speciality::all();
