@@ -69,7 +69,7 @@
                     </div>
 
                     @foreach($medications as $index => $medication)
-                        <div class="grid lg:grid-cols-3 gap-3 p-3 border border-gray-200 rounded-lg">
+                        <div class="grid lg:grid-cols-3 gap-3 p-3 border border-gray-200 rounded-lg" wire:key="medication-{{ $index }}">
                             <div>
                                 <x-wire-input label="Medicamento" wire:model="medications.{{ $index }}.name" />
                             </div>
@@ -164,31 +164,33 @@
                 </div>
 
                 <div class="max-h-[70vh] overflow-y-auto space-y-4">
-                    @forelse ($previousConsultations as $consultation)
-                        <div class="border border-indigo-200 rounded-lg p-4">
-                            <div class="flex items-start justify-between gap-3 mb-2">
-                                <div>
-                                    <p class="font-semibold text-gray-800">
-                                        <i class="fa-regular fa-calendar me-1 text-indigo-600"></i>
-                                        {{ $consultation->appointment?->date }}
-                                    </p>
-                                    <p class="text-sm text-gray-600">Atendido por: Dr(a). {{ $consultation->doctor->user->name }}</p>
+                    @if($previousConsultations && count($previousConsultations) > 0)
+                        @foreach ($previousConsultations as $consultation)
+                            <div class="border border-indigo-200 rounded-lg p-4" wire:key="consultation-{{ $consultation->appointment_id ?? $loop->index }}">
+                                <div class="flex items-start justify-between gap-3 mb-2">
+                                    <div>
+                                        <p class="font-semibold text-gray-800">
+                                            <i class="fa-regular fa-calendar me-1 text-indigo-600"></i>
+                                            {{ $consultation->appointment?->date }}
+                                        </p>
+                                        <p class="text-sm text-gray-600">Atendido por: Dr(a). {{ $consultation->doctor->user->name }}</p>
+                                    </div>
+
+                                    <x-wire-button href="{{ route('admin.consultations.show', $consultation->appointment_id) }}" xs blue>
+                                        Consultar detalle
+                                    </x-wire-button>
                                 </div>
 
-                                <x-wire-button href="{{ route('admin.consultations.show', $consultation->appointment_id) }}" xs blue>
-                                    Consultar detalle
-                                </x-wire-button>
+                                <div class="bg-gray-50 rounded-md p-3 text-sm">
+                                    <p><span class="font-semibold">Diagnóstico:</span> {{ $consultation->diagnosis }}</p>
+                                    <p><span class="font-semibold">Tratamiento:</span> {{ $consultation->treatment }}</p>
+                                    <p><span class="font-semibold">Notas:</span> {{ $consultation->notes ?: 'Sin notas' }}</p>
+                                </div>
                             </div>
-
-                            <div class="bg-gray-50 rounded-md p-3 text-sm">
-                                <p><span class="font-semibold">Diagnóstico:</span> {{ $consultation->diagnosis }}</p>
-                                <p><span class="font-semibold">Tratamiento:</span> {{ $consultation->treatment }}</p>
-                                <p><span class="font-semibold">Notas:</span> {{ $consultation->notes ?: 'Sin notas' }}</p>
-                            </div>
-                        </div>
-                    @empty
+                        @endforeach
+                    @else
                         <p class="text-sm text-gray-500">No hay consultas anteriores para este paciente.</p>
-                    @endforelse
+                    @endif
                 </div>
             </div>
         </div>
