@@ -164,7 +164,7 @@
                 </div>
 
                 <div class="max-h-[70vh] overflow-y-auto space-y-4">
-                    @forelse($previousConsultations as $consultation)
+                    @forelse ($previousConsultations as $consultation)
                         <div class="border border-indigo-200 rounded-lg p-4">
                             <div class="flex items-start justify-between gap-3 mb-2">
                                 <div>
