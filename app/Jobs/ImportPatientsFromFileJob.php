@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use OpenSpout\Reader\CSV\Reader as CsvReader;
 use OpenSpout\Reader\XLSX\Reader as XlsxReader;
+use Spatie\Permission\Models\Role;
 use Throwable;
 
 class ImportPatientsFromFileJob implements ShouldQueue
@@ -20,6 +21,11 @@ class ImportPatientsFromFileJob implements ShouldQueue
     use Queueable;
 
     public int $tries = 3;
+
+    private ?int $patientRoleId = null;
+
+    /** @var array<string, int> */
+    private array $bloodTypeMap = [];
 
     public function __construct(
         public string $filePath,
@@ -33,6 +39,8 @@ class ImportPatientsFromFileJob implements ShouldQueue
             Log::warning('Patient import file not found.', ['file' => $this->filePath]);
             return;
         }
+
+        $this->warmupCaches();
 
         $absolutePath = Storage::disk('local')->path($this->filePath);
         $reader = $this->makeReader($absolutePath);
@@ -68,16 +76,20 @@ class ImportPatientsFromFileJob implements ShouldQueue
                     $email = Str::lower((string) $rowData['email']);
                     $idNumber = (string) $rowData['id_number'];
 
-                    $user = User::query()->where('email', $email)->first();
-                    $idInUse = User::query()
-                        ->where('id_number', $idNumber)
-                        ->when($user, fn ($query) => $query->where('id', '!=', $user->id))
-                        ->exists();
+                    $matchedUsers = User::query()
+                        ->where('email', $email)
+                        ->orWhere('id_number', $idNumber)
+                        ->get();
 
-                    if ($idInUse) {
+                    $userByEmail = $matchedUsers->firstWhere('email', $email);
+                    $userByIdNumber = $matchedUsers->firstWhere('id_number', $idNumber);
+
+                    if ($userByEmail && $userByIdNumber && $userByEmail->id !== $userByIdNumber->id) {
                         $skipped++;
                         continue;
                     }
+
+                    $user = $userByEmail ?? $userByIdNumber;
 
                     if (!$user) {
                         $user = new User();
@@ -91,8 +103,8 @@ class ImportPatientsFromFileJob implements ShouldQueue
                     $user->address = (string) $rowData['address'];
                     $user->save();
 
-                    if (method_exists($user, 'assignRole') && !$user->hasRole('Paciente') && \Spatie\Permission\Models\Role::query()->where('name', 'Paciente')->exists()) {
-                        $user->assignRole('Paciente');
+                    if ($this->patientRoleId) {
+                        $user->roles()->syncWithoutDetaching([$this->patientRoleId]);
                     }
 
                     $patient = Patient::query()->firstOrNew(['user_id' => $user->id]);
@@ -200,11 +212,25 @@ class ImportPatientsFromFileJob implements ShouldQueue
         }
 
         if (ctype_digit($value)) {
-            return BloodType::query()->whereKey((int) $value)->value('id');
+            $id = (int) $value;
+
+            return in_array($id, $this->bloodTypeMap, true) ? $id : null;
         }
 
-        return BloodType::query()
-            ->whereRaw('LOWER(name) = ?', [Str::lower(trim($value))])
-            ->value('id');
+        return $this->bloodTypeMap[Str::lower(trim($value))] ?? null;
+    }
+
+    private function warmupCaches(): void
+    {
+        $this->patientRoleId = Role::query()->where('name', 'Paciente')->value('id');
+
+        $bloodTypes = BloodType::query()->get(['id', 'name']);
+
+        $this->bloodTypeMap = [];
+
+        foreach ($bloodTypes as $bloodType) {
+            $this->bloodTypeMap[(string) $bloodType->id] = (int) $bloodType->id;
+            $this->bloodTypeMap[Str::lower((string) $bloodType->name)] = (int) $bloodType->id;
+        }
     }
 }

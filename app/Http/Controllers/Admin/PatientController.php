@@ -35,7 +35,7 @@ class PatientController extends Controller
 
         $storedPath = Storage::disk('local')->putFile('imports/patients', $validated['patients_file']);
 
-        ImportPatientsFromFileJob::dispatch($storedPath, auth()->id());
+        ImportPatientsFromFileJob::dispatch($storedPath, auth()->id())->onQueue('imports');
 
         session()->flash('swal', [
             'icon' => 'success',
