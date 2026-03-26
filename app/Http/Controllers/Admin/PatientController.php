@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\ImportPatientsFromFileJob;
 use App\Models\Patient;
 use Illuminate\Http\Request;
 use App\Models\BloodType;
+use Illuminate\Support\Facades\Storage;
 
 class PatientController extends Controller
 {
@@ -23,6 +25,25 @@ class PatientController extends Controller
     public function create()
     {
         return view('admin.patients.create');
+    }
+
+    public function import(Request $request)
+    {
+        $validated = $request->validate([
+            'patients_file' => 'required|file|mimes:csv,txt,xlsx|max:10240',
+        ]);
+
+        $storedPath = Storage::disk('local')->putFile('imports/patients', $validated['patients_file']);
+
+        ImportPatientsFromFileJob::dispatch($storedPath, auth()->id());
+
+        session()->flash('swal', [
+            'icon' => 'success',
+            'title' => 'Importación en proceso',
+            'text' => 'El archivo fue recibido y se está procesando en segundo plano.',
+        ]);
+
+        return redirect()->route('admin.patients.index');
     }
 
     /**
