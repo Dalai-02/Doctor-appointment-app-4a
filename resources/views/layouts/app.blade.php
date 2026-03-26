@@ -13,7 +13,9 @@
 
     <!-- Scripts -->
     <script src="https://kit.fontawesome.com/9161014f5f.js" crossorigin="anonymous"></script>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @if (!app()->environment('testing') || file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @endif
 
     <!-- Styles -->
     @livewireStyles
