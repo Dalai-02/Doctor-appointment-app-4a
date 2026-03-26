@@ -44,10 +44,17 @@ class RegistrationTest extends TestCase
             'email' => 'test@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',
-            'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature(),
+            'id_number' => 'ID-123456',
+            'phone' => '9991234567',
+            'address' => 'Calle de prueba 123',
+            'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature() ? 'on' : null,
         ]);
 
-        $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertSessionHasNoErrors();
+        $response->assertStatus(302);
+        $this->assertDatabaseHas('users', [
+            'email' => 'test@example.com',
+            'id_number' => 'ID-123456',
+        ]);
     }
 }
