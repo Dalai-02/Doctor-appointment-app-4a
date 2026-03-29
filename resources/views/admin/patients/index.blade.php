@@ -29,6 +29,11 @@
                     enctype="multipart/form-data" 
                     class="flex flex-col sm:flex-row sm:items-center gap-3 w-full"
                     x-on:submit.prevent="
+                        let fileInput = $event.target.querySelector('input[type=file]');
+                        if (!fileInput.files.length) {
+                            alert('Por favor, selecciona un archivo antes de importar.');
+                            return;
+                        }
                         uploading = true;
                         let formData = new FormData($event.target);
                         let xhr = new XMLHttpRequest();
@@ -39,9 +44,13 @@
                         xhr.onload = () => { 
                             if(xhr.status >= 200 && xhr.status < 300) { 
                                 window.location.href = xhr.responseURL || window.location.href; 
+                            } else if(xhr.status === 422) {
+                                uploading = false; 
+                                let response = JSON.parse(xhr.responseText);
+                                alert(response.message || 'Error de validación: Verifica el archivo.'); 
                             } else { 
                                 uploading = false; 
-                                alert('Hubo un error al subir el archivo.'); 
+                                alert('Hubo un error inesperado al subir el archivo.'); 
                             } 
                         };
                         xhr.send(formData);

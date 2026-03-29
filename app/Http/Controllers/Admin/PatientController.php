@@ -33,7 +33,16 @@ class PatientController extends Controller
             'patients_file' => 'required|file|mimes:csv,txt,xlsx|max:10240',
         ]);
 
-        $storedPath = Storage::disk('local')->putFile('imports/patients', $validated['patients_file']);
+        $file = $request->file('patients_file');
+        $hash = md5_file($file->path());
+
+        if (\Illuminate\Support\Facades\Cache::has('imported_file_' . $hash)) {
+            return back()->withErrors(['patients_file' => 'Este archivo ya fue procesado previamente. No se permiten datos duplicados.']);
+        }
+
+        \Illuminate\Support\Facades\Cache::put('imported_file_' . $hash, true, now()->addDays(30));
+
+        $storedPath = Storage::disk('local')->putFile('imports/patients', $file);
 
         ImportPatientsFromFileJob::dispatch($storedPath, auth()->id())->onQueue('imports');
 
