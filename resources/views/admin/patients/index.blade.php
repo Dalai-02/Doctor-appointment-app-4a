@@ -28,12 +28,25 @@
                         fetch('{{ route('admin.patients.import-progress') }}')
                             .then(r => r.json())
                             .then(data => {
-                                if (data && data.total > 0) {
+                                if (data && typeof data.processed !== 'undefined' && (data.processed > 0 || data.completed)) {
                                     showJobProgress = true;
-                                    jobProgress = Math.round((data.processed / data.total) * 100);
-                                    if(data.processed >= data.total) { 
+                                    jobProgress = data.processed;
+                                    
+                                    if(data.completed) { 
                                         showJobProgress = false; 
-                                        window.location.reload(); 
+                                        clearInterval(pollingInterval);
+                                        fetch('{{ route('admin.patients.clear-progress') }}')
+                                            .then(() => {
+                                                if(typeof Swal !== 'undefined') {
+                                                    Swal.fire({
+                                                        title: '¡Terminado!', 
+                                                        text: 'La verificación de datos ha concluido.', 
+                                                        icon: 'success'
+                                                    }).then(() => window.location.reload());
+                                                } else {
+                                                    window.location.reload(); 
+                                                }
+                                            });
                                     }
                                 } else {
                                     showJobProgress = false;
@@ -126,13 +139,13 @@
                 <!-- Barra de progreso Segundo Plano (Job) -->
                 <div x-show="showJobProgress" class="mt-4 p-4 bg-white rounded-lg shadow-sm border border-blue-100" x-transition>
                     <div class="flex justify-between items-center mb-1">
-                        <span class="text-sm font-semibold text-blue-800"><i class="fa-solid fa-cogs mr-1"></i> Procesando datos en segundo plano...</span>
-                        <span class="text-xs font-bold text-blue-800" x-text="jobProgress + '%'"></span>
+                        <span class="text-sm font-semibold text-blue-800"><i class="fa-solid fa-cogs mr-1"></i> Análisis en segundo plano...</span>
+                        <span class="text-xs font-bold text-blue-800" x-text="'Procesando filas: ' + jobProgress"></span>
                     </div>
                     <div class="w-full bg-blue-100 rounded-full h-3 mt-2 overflow-hidden shadow-inner">
-                        <div class="bg-blue-600 h-3 rounded-full transition-all duration-500 ease-out" x-bind:style="'width: ' + jobProgress + '%'"></div>
+                        <div class="bg-blue-600 h-3 rounded-full transition-all duration-300 ease-in-out" style="width: 100%; opacity: 0.5; animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;"></div>
                     </div>
-                    <p class="text-xs text-gray-500 mt-2">Puedes seguir navegando, te notificaremos o actualizaremos la tabla al terminar.</p>
+                    <p class="text-xs text-gray-500 mt-2">Puedes seguir navegando, te notificaremos al terminar.</p>
                 </div>
             </div>
         </div>

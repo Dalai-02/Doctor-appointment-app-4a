@@ -14,6 +14,8 @@ Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
 
 //Gestion de Pacientes
 Route::resource('patients', \App\Http\Controllers\Admin\PatientController::class);
+Route::get('patients/import-progress/clear', [\App\Http\Controllers\Admin\PatientController::class, 'clearProgress'])
+   ->name('patients.clear-progress');
 Route::get('patients/import-progress', [\App\Http\Controllers\Admin\PatientController::class, 'importProgress'])
    ->name('patients.import-progress');
 Route::post('patients/import', [\App\Http\Controllers\Admin\PatientController::class, 'import'])

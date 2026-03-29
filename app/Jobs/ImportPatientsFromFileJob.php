@@ -46,20 +46,8 @@ class ImportPatientsFromFileJob implements ShouldQueue
         $absolutePath = Storage::disk('local')->path($this->filePath);
         $reader = $this->makeReader($absolutePath);
 
-        // Calculate total rows for progress bar
-        $totalRows = 0;
-        $countReader = $this->makeReader($absolutePath);
-        $countReader->open($absolutePath);
-        foreach ($countReader->getSheetIterator() as $sheet) {
-            foreach ($sheet->getRowIterator() as $index => $row) {
-                if ($index > 1) $totalRows++;
-            }
-            break;
-        }
-        $countReader->close();
-
         if ($this->triggeredBy) {
-            Cache::put("import_progress_{$this->triggeredBy}", ['total' => $totalRows, 'processed' => 0], now()->addMinutes(60));
+            Cache::put("import_progress_{$this->triggeredBy}", ['processed' => 0, 'completed' => false], now()->addMinutes(60));
         }
 
         $imported = 0;
@@ -130,13 +118,13 @@ class ImportPatientsFromFileJob implements ShouldQueue
 
                     $imported++;
 
-                    if ($this->triggeredBy && ($index - 1) % 5 === 0) {
-                        Cache::put("import_progress_{$this->triggeredBy}", ['total' => $totalRows, 'processed' => ($index - 1)], now()->addMinutes(60));
+                    if ($this->triggeredBy && ($index - 1) % 10 === 0) {
+                        Cache::put("import_progress_{$this->triggeredBy}", ['processed' => ($index - 1), 'completed' => false], now()->addMinutes(60));
                     }
                 }
 
                 if ($this->triggeredBy) {
-                    Cache::put("import_progress_{$this->triggeredBy}", ['total' => $totalRows, 'processed' => $totalRows], now()->addMinutes(60));
+                    Cache::put("import_progress_{$this->triggeredBy}", ['processed' => ($index - 1 ?? 0), 'completed' => true], now()->addMinutes(60));
                 }
                 break;
             }
@@ -150,10 +138,6 @@ class ImportPatientsFromFileJob implements ShouldQueue
             'imported' => $imported,
             'skipped' => $skipped,
         ]);
-
-        if ($this->triggeredBy) {
-            Cache::forget("import_progress_{$this->triggeredBy}");
-        }
 
         Storage::disk('local')->delete($this->filePath);
     }

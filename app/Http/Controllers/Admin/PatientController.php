@@ -74,10 +74,16 @@ class PatientController extends Controller
         $progress = \Illuminate\Support\Facades\Cache::get('import_progress_' . auth()->id());
         
         if (!$progress) {
-            return response()->json(['total' => 0, 'processed' => 0]);
+            return response()->json(['processed' => 0, 'completed' => false]);
         }
 
         return response()->json($progress);
+    }
+
+    public function clearProgress()
+    {
+        \Illuminate\Support\Facades\Cache::forget('import_progress_' . auth()->id());
+        return response()->json(['success' => true]);
     }
 
     /**
