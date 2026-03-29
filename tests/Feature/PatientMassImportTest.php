@@ -21,8 +21,8 @@ class PatientMassImportTest extends TestCase
 
         $user = User::factory()->create();
 
-        $csvContent = "name,email,id_number,phone,address\n";
-        $csvContent .= "Juan Perez,juan@example.com,ID-100001,9991234567,Calle Uno 123\n";
+        $csvContent = "nombre_completo,correo,telefono,fecha_nacimiento,tipo_sangre,alergias\n";
+        $csvContent .= "Juan Perez,juan@example.com,9991234567,1990-05-10,O+,Penicilina\n";
 
         $file = UploadedFile::fake()->createWithContent('patients.csv', $csvContent);
 

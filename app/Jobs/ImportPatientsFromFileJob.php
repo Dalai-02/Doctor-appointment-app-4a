@@ -73,34 +73,25 @@ class ImportPatientsFromFileJob implements ShouldQueue
                         continue;
                     }
 
-                    $email = Str::lower((string) $rowData['email']);
-                    $idNumber = (string) $rowData['id_number'];
+                    $email = Str::lower((string) $rowData['correo']);
+                    $idNumber = 'PAT-' . strtoupper(Str::random(8)); // Generated since not in CSV
 
                     $matchedUsers = User::query()
                         ->where('email', $email)
-                        ->orWhere('id_number', $idNumber)
                         ->get();
 
-                    $userByEmail = $matchedUsers->firstWhere('email', $email);
-                    $userByIdNumber = $matchedUsers->firstWhere('id_number', $idNumber);
-
-                    if ($userByEmail && $userByIdNumber && $userByEmail->id !== $userByIdNumber->id) {
-                        $skipped++;
-                        continue;
-                    }
-
-                    $user = $userByEmail ?? $userByIdNumber;
+                    $user = $matchedUsers->first();
 
                     if (!$user) {
                         $user = new User();
                         $user->email = $email;
                         $user->password = Hash::make(Str::password(12));
+                        $user->id_number = $idNumber;
+                        $user->address = 'Sin dirección'; // Default because not in CSV
                     }
 
-                    $user->name = (string) $rowData['name'];
-                    $user->id_number = $idNumber;
-                    $user->phone = (string) $rowData['phone'];
-                    $user->address = (string) $rowData['address'];
+                    $user->name = (string) $rowData['nombre_completo'];
+                    $user->phone = (string) $rowData['telefono'];
                     $user->save();
 
                     if ($this->patientRoleId) {
@@ -108,8 +99,9 @@ class ImportPatientsFromFileJob implements ShouldQueue
                     }
 
                     $patient = Patient::query()->firstOrNew(['user_id' => $user->id]);
-                    $patient->blood_type_id = $this->resolveBloodTypeId($rowData['blood_type'] ?? null);
-                    $patient->allergies = $rowData['allergies'] ?? null;
+                    $patient->date_of_birth = !empty($rowData['fecha_nacimiento']) ? date('Y-m-d', strtotime(str_replace('/', '-', $rowData['fecha_nacimiento']))) : null;
+                    $patient->blood_type_id = $this->resolveBloodTypeId($rowData['tipo_sangre'] ?? null);
+                    $patient->allergies = $rowData['alergias'] ?? null;
                     $patient->chronic_conditions = $rowData['chronic_conditions'] ?? null;
                     $patient->surgical_history = $rowData['surgical_history'] ?? null;
                     $patient->family_history = $rowData['family_history'] ?? null;
@@ -183,7 +175,7 @@ class ImportPatientsFromFileJob implements ShouldQueue
 
     private function hasRequiredFields(array $row): bool
     {
-        $required = ['name', 'email', 'id_number', 'phone', 'address'];
+        $required = ['nombre_completo', 'correo', 'telefono', 'fecha_nacimiento', 'tipo_sangre', 'alergias'];
 
         foreach ($required as $field) {
             if (empty($row[$field])) {

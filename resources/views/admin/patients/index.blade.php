@@ -18,21 +18,28 @@
                     Sube un archivo grande y el sistema lo procesará en segundo plano con Jobs.
                 </p>
                 <p class="text-xs text-gray-500 mt-2">
-                    Encabezados requeridos: <span class="font-mono">name,email,id_number,phone,address</span>.
-                    Opcionales: <span class="font-mono">blood_type,allergies,chronic_conditions,surgical_history,family_history,observations,emergency_contact_name,emergency_contact_phone,emergency_contact_relationship</span>.
+                    Encabezados requeridos: <span class="font-mono bg-gray-100 p-1 rounded">nombre_completo, correo, telefono, fecha_nacimiento, tipo_sangre, alergias</span>.
                 </p>
             </div>
 
-            <form action="{{ route('admin.patients.import') }}" method="POST" enctype="multipart/form-data" class="flex flex-col sm:flex-row gap-3">
+            <form action="{{ route('admin.patients.import') }}" method="POST" enctype="multipart/form-data" class="flex flex-col sm:flex-row sm:items-center gap-3 w-full lg:w-auto mt-4 lg:mt-0 overflow-hidden">
                 @csrf
-                <input
-                    type="file"
-                    name="patients_file"
-                    accept=".csv,.txt,.xlsx"
-                    class="block w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer bg-white"
-                    required
-                >
-                <x-wire-button type="submit" blue>
+                <div class="relative flex-1 min-w-0">
+                    <input
+                        type="file"
+                        name="patients_file"
+                        accept=".csv,.txt,.xlsx"
+                        class="block w-full text-sm text-slate-500
+                               file:mr-4 file:py-2.5 file:px-4
+                               file:rounded-l-lg file:border-0
+                               file:text-sm file:font-semibold
+                               file:bg-blue-50 file:text-blue-700
+                               hover:file:bg-blue-100
+                               cursor-pointer bg-gray-50 border border-gray-300 rounded-lg overflow-hidden"
+                        required
+                    >
+                </div>
+                <x-wire-button type="submit" blue class="shrink-0">
                     <i class="fa-solid fa-file-import"></i>
                     Importar
                 </x-wire-button>
