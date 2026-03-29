@@ -7,6 +7,7 @@ use App\Models\Patient;
 use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -44,6 +45,22 @@ class ImportPatientsFromFileJob implements ShouldQueue
 
         $absolutePath = Storage::disk('local')->path($this->filePath);
         $reader = $this->makeReader($absolutePath);
+
+        // Calculate total rows for progress bar
+        $totalRows = 0;
+        $countReader = $this->makeReader($absolutePath);
+        $countReader->open($absolutePath);
+        foreach ($countReader->getSheetIterator() as $sheet) {
+            foreach ($sheet->getRowIterator() as $index => $row) {
+                if ($index > 1) $totalRows++;
+            }
+            break;
+        }
+        $countReader->close();
+
+        if ($this->triggeredBy) {
+            Cache::put("import_progress_{$this->triggeredBy}", ['total' => $totalRows, 'processed' => 0], now()->addMinutes(60));
+        }
 
         $imported = 0;
         $skipped = 0;
@@ -112,8 +129,15 @@ class ImportPatientsFromFileJob implements ShouldQueue
                     $patient->save();
 
                     $imported++;
+
+                    if ($this->triggeredBy && ($index - 1) % 5 === 0) {
+                        Cache::put("import_progress_{$this->triggeredBy}", ['total' => $totalRows, 'processed' => ($index - 1)], now()->addMinutes(60));
+                    }
                 }
 
+                if ($this->triggeredBy) {
+                    Cache::put("import_progress_{$this->triggeredBy}", ['total' => $totalRows, 'processed' => $totalRows], now()->addMinutes(60));
+                }
                 break;
             }
         } finally {
@@ -126,6 +150,10 @@ class ImportPatientsFromFileJob implements ShouldQueue
             'imported' => $imported,
             'skipped' => $skipped,
         ]);
+
+        if ($this->triggeredBy) {
+            Cache::forget("import_progress_{$this->triggeredBy}");
+        }
 
         Storage::disk('local')->delete($this->filePath);
     }

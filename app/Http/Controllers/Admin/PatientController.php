@@ -37,7 +37,9 @@ class PatientController extends Controller
         $hash = md5_file($file->path());
 
         if (\Illuminate\Support\Facades\Cache::has('imported_file_' . $hash)) {
-            return back()->withErrors(['patients_file' => 'Este archivo ya fue procesado previamente. No se permiten datos duplicados.']);
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'patients_file' => 'Este archivo ya fue procesado previamente. No se permiten datos duplicados.'
+            ]);
         }
 
         \Illuminate\Support\Facades\Cache::put('imported_file_' . $hash, true, now()->addDays(30));
@@ -61,6 +63,17 @@ class PatientController extends Controller
     public function store(Request $request)
     {
         //
+    }
+
+    public function importProgress()
+    {
+        $progress = \Illuminate\Support\Facades\Cache::get('import_progress_' . auth()->id());
+        
+        if (!$progress) {
+            return response()->json(['total' => 0, 'processed' => 0]);
+        }
+
+        return response()->json($progress);
     }
 
     /**

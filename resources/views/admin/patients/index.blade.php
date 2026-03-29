@@ -22,7 +22,26 @@
                 </p>
             </div>
 
-            <div x-data="{ uploading: false, progress: 0 }" class="w-full lg:w-auto mt-4 lg:mt-0 overflow-hidden">
+            <div x-data="{ uploading: false, progress: 0, jobProgress: 0, showJobProgress: false, pollingInterval: null }" 
+                 x-init="
+                    pollingInterval = setInterval(() => {
+                        fetch('{{ route('admin.patients.import-progress') }}')
+                            .then(r => r.json())
+                            .then(data => {
+                                if (data && data.total > 0) {
+                                    showJobProgress = true;
+                                    jobProgress = Math.round((data.processed / data.total) * 100);
+                                    if(data.processed >= data.total) { 
+                                        showJobProgress = false; 
+                                        window.location.reload(); 
+                                    }
+                                } else {
+                                    showJobProgress = false;
+                                }
+                            })
+                    }, 2000);
+                 "
+                 class="w-full lg:w-auto mt-4 lg:mt-0 overflow-hidden">
                 <form 
                     action="{{ route('admin.patients.import') }}" 
                     method="POST" 
@@ -31,27 +50,36 @@
                     x-on:submit.prevent="
                         let fileInput = $event.target.querySelector('input[type=file]');
                         if (!fileInput.files.length) {
-                            alert('Por favor, selecciona un archivo antes de importar.');
+                            if(typeof Swal !== 'undefined') Swal.fire('Error', 'Por favor, selecciona un archivo antes de importar.', 'error');
+                            else alert('Por favor, selecciona un archivo antes de importar.');
                             return;
                         }
                         uploading = true;
                         let formData = new FormData($event.target);
                         let xhr = new XMLHttpRequest();
                         xhr.open('POST', $event.target.action);
+                        xhr.setRequestHeader('Accept', 'application/json');
                         xhr.upload.onprogress = e => { 
                             if(e.lengthComputable) progress = Math.round((e.loaded / e.total) * 100); 
                         };
                         xhr.onload = () => { 
                             if(xhr.status >= 200 && xhr.status < 300) { 
                                 window.location.href = xhr.responseURL || window.location.href; 
-                            } else if(xhr.status === 422) {
+                            } else {
                                 uploading = false; 
-                                let response = JSON.parse(xhr.responseText);
-                                alert(response.message || 'Error de validación: Verifica el archivo.'); 
-                            } else { 
-                                uploading = false; 
-                                alert('Hubo un error inesperado al subir el archivo.'); 
-                            } 
+                                let errorMessage = 'Hubo un error inesperado al subir el archivo.';
+                                if(xhr.responseText) {
+                                    try {
+                                        let response = JSON.parse(xhr.responseText);
+                                        errorMessage = response.message || errorMessage;
+                                        if(response.errors && response.errors.patients_file) {
+                                            errorMessage = response.errors.patients_file[0];
+                                        }
+                                    } catch(e) {}
+                                }
+                                if(typeof Swal !== 'undefined') Swal.fire('Error', errorMessage, 'error');
+                                else alert(errorMessage);
+                            }
                         };
                         xhr.send(formData);
                     "
@@ -76,15 +104,26 @@
                     <x-wire-button type="submit" blue class="shrink-0" x-bind:disabled="uploading">
                         <i class="fa-solid fa-file-import" x-show="!uploading"></i>
                         <svg x-show="uploading" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        <span x-text="uploading ? 'Subiendo...' : 'Importar'"></span>
+                        <span x-text="uploading ? 'Cargando al servidor...' : 'Importar'"></span>
                     </x-wire-button>
                 </form>
 
-                <!-- Barra de progreso -->
+                <!-- Barra de progreso File Upload -->
                 <div x-show="uploading" class="w-full bg-gray-200 rounded-full h-2.5 mt-3 duration-300" x-transition>
                     <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-out" x-bind:style="'width: ' + progress + '%'"></div>
                 </div>
-                <div x-show="uploading" class="text-xs text-gray-500 text-right mt-1" x-text="progress + '%'"></div>
+
+                <!-- Barra de progreso Segundo Plano (Job) -->
+                <div x-show="showJobProgress" class="mt-4 p-4 bg-white rounded-lg shadow-sm border border-blue-100" x-transition>
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-sm font-semibold text-blue-800"><i class="fa-solid fa-cogs mr-1"></i> Procesando datos en segundo plano...</span>
+                        <span class="text-xs font-bold text-blue-800" x-text="jobProgress + '%'"></span>
+                    </div>
+                    <div class="w-full bg-blue-100 rounded-full h-3 mt-2 overflow-hidden shadow-inner">
+                        <div class="bg-blue-600 h-3 rounded-full transition-all duration-500 ease-out" x-bind:style="'width: ' + jobProgress + '%'"></div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">Puedes seguir navegando, te notificaremos o actualizaremos la tabla al terminar.</p>
+                </div>
             </div>
         </div>
 
