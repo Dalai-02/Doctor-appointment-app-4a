@@ -54,6 +54,10 @@ class PatientController extends Controller
             'text' => 'El archivo fue recibido y se está procesando en segundo plano.',
         ]);
 
+        if ($request->wantsJson()) {
+            return response()->json(['message' => 'Importación en proceso']);
+        }
+
         return redirect()->route('admin.patients.index');
     }
 

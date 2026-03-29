@@ -64,7 +64,17 @@
                         };
                         xhr.onload = () => { 
                             if(xhr.status >= 200 && xhr.status < 300) { 
-                                window.location.href = xhr.responseURL || window.location.href; 
+                                if(typeof Swal !== 'undefined') {
+                                    Swal.fire({
+                                        title: 'Importación en proceso',
+                                        text: 'El archivo fue recibido y se está procesando en segundo plano.',
+                                        icon: 'success',
+                                        confirmButtonText: 'Aceptar'
+                                    }).then(() => window.location.reload());
+                                } else {
+                                    alert('El archivo fue recibido. Recargando...');
+                                    window.location.reload();
+                                }
                             } else {
                                 uploading = false; 
                                 let errorMessage = 'Hubo un error inesperado al subir el archivo.';
