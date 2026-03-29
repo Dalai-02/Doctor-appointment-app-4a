@@ -74,7 +74,7 @@ class AppointmentController extends Controller
             ]);
         }
 
-        Appointment::create([
+        $appointment = Appointment::create([
             'patient_id' => $validated['patient_id'],
             'doctor_id' => $validated['doctor_id'],
             'date' => $validated['date'],
@@ -84,6 +84,16 @@ class AppointmentController extends Controller
             'reason' => $validated['reason'],
             'status' => 1,
         ]);
+
+        $appointment->load(['patient.user', 'doctor.user', 'doctor.speciality']);
+        
+        try {
+            // Forzado temporalmente: Enviar siempre a este correo sin importar qué paciente elijas
+            \Illuminate\Support\Facades\Mail::to('dalaipacheco3@gmail.com')
+                ->send(new \App\Mail\AppointmentReceipt($appointment));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error enviando comprobante PDF: ' . $e->getMessage());
+        }
 
         return redirect()
             ->route('admin.appointments.index')
